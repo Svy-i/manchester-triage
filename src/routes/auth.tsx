@@ -31,7 +31,7 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error("E-mail ou senha inválidos");
+    if (error) { toast.error("E-mail ou senha inválidos"); return; }
     navigate({ to: "/dashboard" });
   };
 
@@ -44,7 +44,7 @@ function AuthPage() {
       options: { emailRedirectTo: window.location.origin },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Conta criada! Confira seu e-mail para confirmar o acesso.");
   };
 

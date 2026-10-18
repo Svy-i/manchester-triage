@@ -19,7 +19,7 @@ describe("Protocolo Manchester", () => {
       ],
       now,
     );
-    expect(q[0].id).toBe("b");
+    expect(q[0]?.id).toBe("b");
   });
   it("mesma cor: quem chegou primeiro é atendido primeiro", () => {
     const q = sortQueue(
@@ -29,6 +29,6 @@ describe("Protocolo Manchester", () => {
       ],
       now,
     );
-    expect(q[0].id).toBe("early");
+    expect(q[0]?.id).toBe("early");
   });
 });

@@ -25,12 +25,12 @@ export function effectiveColor(
   let elapsed = (now.getTime() - new Date(arrivalAt).getTime()) / 60000;
   let idx = COLORS.indexOf(color);
   while (idx > 0) {
-    const limit = COLOR_INFO[COLORS[idx]].limitMin;
+    const limit = COLOR_INFO[COLORS[idx]!].limitMin;
     if (elapsed < limit) break;
     elapsed -= limit;
     idx -= 1;
   }
-  return COLORS[idx];
+  return COLORS[idx]!;
 }
 
 export function sortQueue<T extends { color: ManchesterColor; arrival_at: string }>(

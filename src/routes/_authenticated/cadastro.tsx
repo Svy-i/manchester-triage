@@ -35,7 +35,7 @@ function Cadastro() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!color) return toast.error("Selecione a classificação de risco");
+    if (!color) { toast.error("Selecione a classificação de risco"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     const { data, error } = await supabase
@@ -46,12 +46,12 @@ function Cadastro() {
         document: doc.trim() || null,
         color,
         details: color === "amarelo" ? details.trim() || null : null,
-        created_by: u.user?.id,
+        created_by: u.user?.id ?? null,
       })
       .select("code")
       .single();
     setSaving(false);
-    if (error) return toast.error("Não foi possível cadastrar: " + error.message);
+    if (error) { toast.error("Não foi possível cadastrar: " + error.message); return; }
     toast.success(`Paciente #${data.code} cadastrado`);
     qc.invalidateQueries({ queryKey: ["patients"] });
     navigate({ to: "/dashboard" });
