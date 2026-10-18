@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patients: {
+        Row: {
+          arrival_at: string
+          attended_at: string | null
+          birth_date: string | null
+          code: number
+          color: Database["public"]["Enums"]["manchester_color"]
+          created_at: string
+          created_by: string | null
+          details: string | null
+          document: string | null
+          full_name: string
+          id: string
+          status: Database["public"]["Enums"]["patient_status"]
+        }
+        Insert: {
+          arrival_at?: string
+          attended_at?: string | null
+          birth_date?: string | null
+          code?: never
+          color: Database["public"]["Enums"]["manchester_color"]
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          document?: string | null
+          full_name: string
+          id?: string
+          status?: Database["public"]["Enums"]["patient_status"]
+        }
+        Update: {
+          arrival_at?: string
+          attended_at?: string | null
+          birth_date?: string | null
+          code?: never
+          color?: Database["public"]["Enums"]["manchester_color"]
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          document?: string | null
+          full_name?: string
+          id?: string
+          status?: Database["public"]["Enums"]["patient_status"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +67,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      manchester_color: "vermelho" | "laranja" | "amarelo" | "verde" | "azul"
+      patient_status: "aguardando" | "em_atendimento" | "atendido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +195,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      manchester_color: ["vermelho", "laranja", "amarelo", "verde", "azul"],
+      patient_status: ["aguardando", "em_atendimento", "atendido"],
+    },
   },
 } as const
