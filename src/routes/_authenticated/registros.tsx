@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PatientRecordDialogs } from "@/components/PatientRecordDialogs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ColorBadge } from "@/components/ColorBadge";
 import { COLORS, COLOR_INFO, effectiveColor } from "@/lib/triage";
-import { fmtTime, patientsQuery, STATUS_LABEL, useNow, type PatientStatus } from "@/lib/patients";
+import { fmtTime, patientsQuery, STATUS_LABEL, useNow, type Patient, type PatientStatus } from "@/lib/patients";
 
 export const Route = createFileRoute("/_authenticated/registros")({
   head: () => ({
@@ -15,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/registros")({
       { name: "description", content: "Busque e filtre pacientes por nome, ID, documento, cor, status e data." },
       { property: "og:title", content: "Registro de pacientes — Triagem Manchester" },
       { property: "og:description", content: "Busque e filtre pacientes por nome, ID, documento, cor, status e data." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Registros,
@@ -27,6 +32,7 @@ function Registros() {
   const [color, setColor] = useState("todas");
   const [status, setStatus] = useState("todos");
   const [date, setDate] = useState("");
+  const [action, setAction] = useState<{ patient: Patient; mode: "edit" | "delete" } | null>(null);
 
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -83,12 +89,13 @@ function Registros() {
               <TableHead>Chegada</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Detalhes</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={7}>Carregando...</TableCell></TableRow>}
+            {isLoading && <TableRow><TableCell colSpan={8}>Carregando...</TableCell></TableRow>}
             {!isLoading && rows.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-muted-foreground">Nenhum paciente encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-muted-foreground">Nenhum paciente encontrado.</TableCell></TableRow>
             )}
             {rows.map((p) => {
               const eff = p.status === "aguardando" ? effectiveColor(p.color, p.arrival_at, now) : p.color;
@@ -109,12 +116,19 @@ function Registros() {
                   <TableCell className="font-mono text-sm">{fmtTime(p.arrival_at)}</TableCell>
                   <TableCell>{STATUS_LABEL[p.status]}</TableCell>
                   <TableCell className="max-w-xs truncate text-sm text-muted-foreground" title={p.details ?? ""}>{p.details ?? "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" title="Editar paciente" aria-label={`Editar ${p.full_name}`} onClick={() => setAction({ patient: p, mode: "edit" })}><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" title="Excluir cadastro" aria-label={`Excluir ${p.full_name}`} onClick={() => setAction({ patient: p, mode: "delete" })}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
+      {action && <PatientRecordDialogs key={`${action.mode}-${action.patient.id}`} patient={action.patient} mode={action.mode} onClose={() => setAction(null)} />}
     </div>
   );
 }

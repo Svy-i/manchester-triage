@@ -10,6 +10,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Triagem hospitalar com protocolo Manchester e fila por prioridade." },
       { property: "og:title", content: "Triagem Manchester — Painel hospitalar" },
       { property: "og:description", content: "Triagem hospitalar com protocolo Manchester e fila por prioridade." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
