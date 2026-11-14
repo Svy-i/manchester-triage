@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/registros")({
       { name: "description", content: "Busque e filtre pacientes por nome, ID, documento, cor, status e data." },
       { property: "og:title", content: "Registro de pacientes — Triagem Manchester" },
       { property: "og:description", content: "Busque e filtre pacientes por nome, ID, documento, cor, status e data." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Registros,

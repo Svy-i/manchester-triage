@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Acesso da equipe de atendimento e médicos ao sistema de triagem." },
       { property: "og:title", content: "Entrar — Triagem Manchester" },
       { property: "og:description", content: "Acesso da equipe de atendimento e médicos ao sistema de triagem." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,

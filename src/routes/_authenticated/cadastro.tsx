@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/cadastro")({
       { name: "description", content: "Registre a chegada de um paciente e classifique sua prioridade." },
       { property: "og:title", content: "Cadastro de paciente — Triagem Manchester" },
       { property: "og:description", content: "Registre a chegada de um paciente e classifique sua prioridade." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Cadastro,

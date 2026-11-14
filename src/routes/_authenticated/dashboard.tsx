@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { name: "description", content: "Fila de atendimento ordenada por prioridade Manchester e chegada." },
       { property: "og:title", content: "Painel de triagem — Triagem Manchester" },
       { property: "og:description", content: "Fila de atendimento ordenada por prioridade Manchester e chegada." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Dashboard,
