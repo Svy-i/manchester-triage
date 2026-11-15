@@ -1,4 +1,3 @@
-
 import { createMiddleware } from "@tanstack/react-start";
 import { auth } from "./client";
 
