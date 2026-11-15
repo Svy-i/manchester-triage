@@ -1,8 +1,15 @@
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Activity } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/integrations/firebase/client";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,34 +36,66 @@ function AuthPage() {
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) { toast.error("E-mail ou senha inválidos"); return; }
-    navigate({ to: "/dashboard" });
+
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+
+      if (!credential.user.emailVerified) {
+        await signOut(auth);
+        toast.error("Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.");
+        return;
+      }
+
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+      console.error("Erro no login:", error);
+      toast.error("E-mail ou senha inválidos");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin },
-    });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Conta criada! Confira seu e-mail para confirmar o acesso.");
+
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+      await sendEmailVerification(credential.user);
+      await signOut(auth);
+
+      toast.success("Conta criada! Confira seu e-mail para confirmar o acesso.");
+    } catch (error) {
+      console.error("Erro ao criar conta:", error);
+      toast.error("Não foi possível criar a conta. Verifique os dados e tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fields = (
     <>
       <div className="space-y-2">
         <Label htmlFor="email">E-mail</Label>
-        <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input
+          id="email"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">Senha</Label>
-        <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input
+          id="password"
+          type="password"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </div>
     </>
   );
@@ -79,13 +118,17 @@ function AuthPage() {
           <TabsContent value="login">
             <form onSubmit={signIn} className="space-y-4">
               {fields}
-              <Button type="submit" className="w-full" disabled={loading}>Entrar</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                Entrar
+              </Button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
             <form onSubmit={signUp} className="space-y-4">
               {fields}
-              <Button type="submit" className="w-full" disabled={loading}>Criar conta</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                Criar conta
+              </Button>
             </form>
           </TabsContent>
         </Tabs>

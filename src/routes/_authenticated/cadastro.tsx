@@ -1,8 +1,15 @@
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, db } from "@/integrations/firebase/client";
+import {
+  collection,
+  doc,
+  runTransaction,
+  serverTimestamp,
+} from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,33 +35,76 @@ function Cadastro() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
-  const [doc, setDoc] = useState("");
+  const [docNumber, setDocNumber] = useState("");
   const [color, setColor] = useState<ManchesterColor | null>(null);
   const [details, setDetails] = useState("");
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!color) { toast.error("Selecione a classificação de risco"); return; }
+
+    if (!color) {
+      toast.error("Selecione a classificação de risco");
+      return;
+    }
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      toast.error("Você precisa estar autenticado para cadastrar um paciente.");
+      return;
+    }
+
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    const { data, error } = await supabase
-      .from("patients")
-      .insert({
-        full_name: name.trim(),
-        birth_date: birth || null,
-        document: doc.trim() || null,
-        color,
-        details: color === "amarelo" ? details.trim() || null : null,
-        created_by: u.user?.id ?? null,
-      })
-      .select("code")
-      .single();
+
+    try {
+      const patientRef = doc(collection(db, "patients"));
+      const counterRef = doc(db, "counters", "patients");
+
+      const patientCode = await runTransaction(db, async (transaction) => {
+        const counterSnapshot = await transaction.get(counterRef);
+        const nextCode = (counterSnapshot.exists()
+          ? counterSnapshot.data()["lastCode"]
+          : 0) + 1;
+
+        transaction.set(counterRef, { lastCode: nextCode });
+
+        transaction.set(patientRef, {
+          full_name: name.trim(),
+          birth_date: birth || null,
+          document: docNumber.trim() || null,
+          color,
+          details: color === "amarelo" ? details.trim() || null : null,
+          status: "aguardando",
+          created_by: user.uid,
+          created_at: serverTimestamp(),
+          arrival_at: serverTimestamp(),
+          attended_at: null,
+          code: nextCode,
+        });
+
+        return nextCode;
+      });
+
+      toast.success(`Paciente #${patientCode} cadastrado`);
+      await qc.invalidateQueries({ queryKey: ["patients"] });
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+    console.error("Erro ao cadastrar paciente:", error);
+
+    if (error instanceof Error) {
+      console.error("Mensagem:", error.message);
+      console.error("Código:", (error as { code?: string }).code);
+    }
+
+    toast.error(
+      error instanceof Error
+        ? `Erro: ${error.message}`
+        : "Não foi possível cadastrar o paciente."
+    );
+  } finally {
     setSaving(false);
-    if (error) { toast.error("Não foi possível cadastrar: " + error.message); return; }
-    toast.success(`Paciente #${data.code} cadastrado`);
-    qc.invalidateQueries({ queryKey: ["patients"] });
-    navigate({ to: "/dashboard" });
+  }
   };
 
   return (
@@ -75,7 +125,7 @@ function Cadastro() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="doc">Documento (CPF / SUS)</Label>
-            <Input id="doc" value={doc} onChange={(e) => setDoc(e.target.value)} />
+            <Input id="doc" value={docNumber} onChange={(e) => setDocNumber(e.target.value)} />
           </div>
         </div>
         <div className="space-y-2">

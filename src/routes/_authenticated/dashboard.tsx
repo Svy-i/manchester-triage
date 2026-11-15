@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUp, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, db } from "@/integrations/firebase/client";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ColorBadge, COLOR_BORDER, COLOR_CLASSES } from "@/components/ColorBadge";
 import { COLORS, COLOR_INFO, effectiveColor, minutesSince, sortQueue } from "@/lib/triage";
@@ -29,11 +31,17 @@ function Dashboard() {
   const inCare = data.filter((p) => p.status === "em_atendimento");
 
   const setStatus = async (id: string, status: PatientStatus) => {
-    await supabase
-      .from("patients")
-      .update({ status, attended_at: status === "aguardando" ? null : new Date().toISOString() })
-      .eq("id", id);
-    qc.invalidateQueries({ queryKey: ["patients"] });
+    try {
+      await updateDoc(doc(db, "patients", id), {
+        status,
+        attended_at: status === "aguardando" ? null : serverTimestamp(),
+      });
+
+      await qc.invalidateQueries({ queryKey: ["patients"] });
+    } catch (error) {
+      console.error("Erro ao atualizar status do paciente:", error);
+      toast.error("Não foi possível atualizar o status do paciente.");
+    }
   };
 
   return (

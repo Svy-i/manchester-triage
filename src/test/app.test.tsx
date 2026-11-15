@@ -16,17 +16,14 @@ describe('Renderização do App', () => {
       context: { queryClient } 
     });
 
-    // 1. ADICIONE ESTA LINHA: Espera o roteador carregar a rota internamente
     await router.load();
 
-    // 2. Renderiza normalmente
     render(
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
     );
 
-    // 3. Agora o elemento deve estar presente na tela simulada
     await waitFor(() => {
       const elementoHome = screen.getByText(/E-mail/i); 
       expect(elementoHome).toBeInTheDocument();

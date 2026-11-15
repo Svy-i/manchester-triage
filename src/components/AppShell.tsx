@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Activity, ClipboardPlus, LayoutDashboard, LogOut, Users } from "lucide-react";
 import type { ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/integrations/firebase/client";
+import { signOut } from "firebase/auth";
 
 const NAV = [
   { to: "/dashboard", label: "Painel", icon: LayoutDashboard },
@@ -31,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
         <button
           onClick={async () => {
-            await supabase.auth.signOut();
+            await signOut(auth);
             navigate({ to: "/auth" });
           }}
           className="ml-auto flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent md:ml-0 md:mt-auto"
